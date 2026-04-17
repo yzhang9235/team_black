@@ -1,72 +1,40 @@
 import qrcode
 import os
-import re
 
-INPUT_FILE = "qrCodes.txt"
-OUTPUT_FOLDER = "qr_output"
+OUTPUT = "qr_output"
+os.makedirs(OUTPUT, exist_ok=True)
+
 DPI = 300
-PIXELS = 300
+SIZE = 300 
 
 
-# =========================
-# SAFE FILENAME
-# =========================
-def make_safe_filename(text):
-    text = re.sub(r'[^a-zA-Z0-9._-]', '_', text)
-    return text if text else "qr_code"
+def create_qr(food_id):
 
-
-# =========================
-# QR GENERATOR
-# =========================
-def create_qr(data, filename):
     qr = qrcode.QRCode(
         version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        error_correction=qrcode.constants.ERROR_CORRECT_H, 
         box_size=10,
-        border=4,
+        border=4
     )
 
-    qr.add_data(data)
+    qr.add_data(food_id)
     qr.make(fit=True)
 
-    img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
-    img = img.resize((PIXELS, PIXELS))
+    img = qr.make_image(fill="black", back="white").convert("RGB")
+
+    img = img.resize((SIZE, SIZE))
+
+    filename = f"{OUTPUT}/{food_id}.png"
     img.save(filename, dpi=(DPI, DPI))
 
-
-def load_from_list():
-    return [f"FOOD{str(i).zfill(3)}" for i in range(1, 21)]
+    print("generated:", filename)
 
 
-# =========================
-# MAIN
-# =========================
 def main():
 
-    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-
-    items = load_from_list()
-
-    used = {}
-
-    for item in items:
-
-        data = item
-
-        base_name = make_safe_filename(item)
-
-        if base_name in used:
-            used[base_name] += 1
-            filename = f"{base_name}_{used[base_name]}.png"
-        else:
-            used[base_name] = 1
-            filename = f"{base_name}.png"
-
-        output_path = os.path.join(OUTPUT_FOLDER, filename)
-
-        create_qr(data, output_path)
-        print(f"Saved: {output_path} -> {data}")
+    for i in range(1, 21):
+        food_id = f"FOOD{str(i).zfill(3)}"
+        create_qr(food_id)
 
 
 if __name__ == "__main__":

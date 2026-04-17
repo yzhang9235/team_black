@@ -1,0 +1,52 @@
+import sqlite3
+
+DB_NAME = "food.db"
+
+
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS food (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        expiry_date TEXT,
+        owner TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def get_food(food_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM food WHERE id=?", (food_id,))
+    row = c.fetchone()
+
+    conn.close()
+
+    if row:
+        return {
+            "id": row[0],
+            "name": row[1],
+            "expiry_date": row[2],
+            "owner": row[3]
+        }
+
+    return None
+
+
+def add_food(food_id, name, expiry_date, owner):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    c.execute("""
+    INSERT OR REPLACE INTO food VALUES (?, ?, ?, ?)
+    """, (food_id, name, expiry_date, owner))
+
+    conn.commit()
+    conn.close()

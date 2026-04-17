@@ -1,64 +1,40 @@
-from flask import Flask, request
-import subprocess
-import os
+from flask import Flask, request, jsonify
+import database
 
 app = Flask(__name__)
 
-def load_database(filename):
-    db = []
-    with open(filename, "r") as f:
-        lines = f.readlines()[1:]
-
-    for line in lines:
-        parts = line.strip().split(",")
-        if len(parts) == 4:
-            db.append({
-                "id": parts[0],
-                "name": parts[1],
-                "expiry_date": parts[2],
-                "owner": parts[3]
-            })
-    return db
-
-
-def get_food_by_id(food_id):
-    for item in load_database("food.csv"):
-        if item["id"] == food_id:
-            return item
-    return None
+database.init_db()
 
 
 @app.route("/food/<food_id>")
 def food(food_id):
-    item = get_food_by_id(food_id)
+
+    item = database.get_food(food_id)
+
     if not item:
         return "Food not found", 404
-    return item
+
+    return jsonify(item)
 
 
 @app.route("/add")
 def add_food():
+
     food_id = request.args.get("id")
+    name = request.args.get("name")
+    expiry = request.args.get("expiry")
+    owner = request.args.get("owner")
 
-    if not food_id:
-        return "Missing id", 400
+    if not all([food_id, name, expiry, owner]):
+        return "Missing fields", 400
 
-    item = get_food_by_id(food_id)
+    database.add_food(food_id, name, expiry, owner)
 
-    if not item:
-        return "Food not found", 404
-
-    subprocess.run([
-        "./addFood",
-        item["id"],
-        item["name"],
-        item["expiry_date"],
-        item["owner"]
-    ])
-
-    return {"status": "success", "food": item}
+    return {
+        "status": "success",
+        "id": food_id
+    }
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=10000)
