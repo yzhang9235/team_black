@@ -22,7 +22,10 @@ def load_database(filename):
     return db
 
 
-@app.route("/add")
+@app.route("/food/<id>")
+def food(food_id):
+    return f"Food ID is {food_id}"
+    
 def add_food():
     food_id = request.args.get("id")
 
