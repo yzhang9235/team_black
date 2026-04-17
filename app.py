@@ -1,5 +1,6 @@
 import subprocess
 from flask import Flask, request
+import os
 
 app = Flask(__name__)
 
@@ -53,4 +54,5 @@ def add_food():
     return f"Food name: {name}, Expiry: {expiry}, Owner: {owner}"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=10000)
