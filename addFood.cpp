@@ -13,6 +13,17 @@ struct Food {
     string owner;
 };
 
+// trim helper (fixes hidden formatting issues)
+string trim(const string &s) {
+    int start = 0;
+    int end = s.size() - 1;
+
+    while (start <= end && s[start] == ' ') start++;
+    while (end >= start && s[end] == ' ') end--;
+
+    return s.substr(start, end - start + 1);
+}
+
 // read database
 vector<Food> loadDatabase(const string &filename) {
     vector<Food> db;
@@ -27,10 +38,17 @@ vector<Food> loadDatabase(const string &filename) {
         stringstream ss(line);
         Food f;
 
-        getline(ss, f.id, ',');
-        getline(ss, f.name, ',');
-        getline(ss, f.expiry_date, ',');
-        getline(ss, f.owner, ',');
+        string id, name, expiry, owner;
+
+        if (!getline(ss, id, ',')) continue;
+        if (!getline(ss, name, ',')) continue;
+        if (!getline(ss, expiry, ',')) continue;
+        if (!getline(ss, owner, ',')) continue;
+
+        f.id = trim(id);
+        f.name = trim(name);
+        f.expiry_date = trim(expiry);
+        f.owner = trim(owner);
 
         db.push_back(f);
     }
@@ -46,13 +64,12 @@ void saveDatabase(const vector<Food> &db, const string &filename) {
 
     for (int i = 0; i < db.size(); i++) {
         file << db[i].id << ","
-            << db[i].name << ","
-            << db[i].expiry_date << ","
-            << db[i].owner << "\n";
+             << db[i].name << ","
+             << db[i].expiry_date << ","
+             << db[i].owner << "\n";
     }
 }
 
-// receive data from python program
 int main(int argc, char *argv[]) {
 
     if (argc != 5) {
@@ -75,4 +92,4 @@ int main(int argc, char *argv[]) {
     cout << "Food saved: " << newFood.name << endl;
 
     return 0;
-}
+}n

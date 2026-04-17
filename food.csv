@@ -3,3 +3,16 @@ id,name,expiry_date,owner
 2,banana,2026-5-15,Faith
 2,banana,2026-5-15,Faith
 2,banana,2026-2-15,Faith
+101,milk,2026-04-20,Elaine
+102,eggs,2026-04-18,Elaine
+103,juice,2026-04-25,Elaine
+104,chicken,2026-04-15,Elaine
+105,rice,2026-12-31,Elaine
+FOOD001,apple,2026-04-20,Elaine
+FOOD001,apple,2026-04-20,Elaine
+FOOD002,banana,2026-04-20,Hohn
+FOOD003,orange,2026-04-25,Faith
+FOOD001,apple,2026-04-20,Elaine
+FOOD001,apple,2026-04-20,Elaine
+FOOD002,banana,2026-04-20,Hohn
+FOOD001,apple,2026-04-20,Elaine
