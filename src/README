@@ -1,0 +1,3 @@
+How to RUN:
+pio run -t upload  
+pio device monitor --port COM5 --baud 115200
