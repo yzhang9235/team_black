@@ -50,3 +50,11 @@ def add_food(food_id, name, expiry_date, owner):
 
     conn.commit()
     conn.close()
+
+def get_all_ids():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT id FROM food")
+    rows = c.fetchall()
+    conn.close()
+    return [row[0] for row in rows]

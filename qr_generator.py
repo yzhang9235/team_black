@@ -9,7 +9,6 @@ SIZE = 300
 
 
 def create_qr(food_id):
-
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H, 
@@ -17,7 +16,7 @@ def create_qr(food_id):
         border=4
     )
 
-    qr.add_data(food_id)
+    qr.add_data(f"https://scanning-onward-phantom.ngrok-free.dev{food_id}")
     qr.make(fit=True)
 
     img = qr.make_image(fill="black", back="white").convert("RGB")

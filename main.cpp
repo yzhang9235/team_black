@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>   
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -243,14 +244,27 @@ static bool describeFrozenImageWithClaude(String& line1, String& line2, String& 
   Serial.printf("Free heap after base64: %u\n", (unsigned)ESP.getFreeHeap());
 
   const String prompt =
-    "You are helping an ESP32 with a 16x2 LCD. "
-    "Look at the attached image and return EXACTLY two lines and nothing else.\n"
-    "Line 1: short object guess, maximum 16 characters.\n"
-    "Line 2: short scene description, maximum 16 characters.\n"
-    "Use plain ASCII only. No quotes. No bullets. No labels.\n"
-    "If blurry or uncertain, say:\n"
-    "Unclear image\n"
-    "Try again";
+    // "You are helping an ESP32 with a 16x2 LCD. "
+    // "Look at the attached image and return EXACTLY two lines and nothing else.\n"
+    // "You are a structured data extraction system.\n"
+
+    // "If blurry or uncertain, say:\n"
+    // "Unclear image\n"
+    // "Try again";
+    "You are a structured data extraction system.\n"
+    "Return ONLY valid JSON.\n"
+    "No markdown.\n"
+    "No explanation.\n"
+    "Output format:\n"
+    "{"
+    "\"id\":\"FOOD001\","
+    "\"name\":\"string\","
+    "\"expiry_date\":\"YYYY-MM-DD\","
+    "\"owner\":\"string\""
+    "}\n"
+    "If unclear return:\n"
+    "{\"error\":\"invalid\"}";
+
 
   String body;
   body.reserve(base64Image.length() + prompt.length() + 768);
@@ -295,17 +309,97 @@ static bool describeFrozenImageWithClaude(String& line1, String& line2, String& 
     debugMessage = responseBody.length() ? responseBody : "Non-200 response";
     return false;
   }
+  //connect to flask
+  WiFiClientSecure flaskClient;
+  flaskClient.setInsecure();
 
-  const String rawText = extractFirstAssistantText(responseBody);
-  if (rawText.length() == 0) {
-    debugMessage = "Could not parse Claude text";
-    return false;
+  // connect to flask
+  WiFiClientSecure flaskClient;
+  flaskClient.setInsecure();
+
+  HTTPClient http;
+
+  http.begin("https://team-black-1.onrender.com/add");
+  http.addHeader("Content-Type", "application/json");
+
+  String body =
+    "{\"id\":\"" + id +
+    "\",\"name\":\"" + name +
+    "\",\"expiry\":\"" + expiry +
+    "\",\"owner\":\"" + owner + "\"}";
+
+  Serial.println("Sending JSON to Flask...");
+
+  int code = http.POST(body);
+  String res = http.getString();
+
+  http.end();
+
+  Serial.printf("Flask status: %d\n", code);
+  Serial.println(res);
+
+  
+  // const String rawText = extractFirstAssistantText(responseBody);
+  String json = extractFirstAssistantText(responseBody);
+    json.trim();
+
+    int start = json.indexOf('{');
+    int end = json.lastIndexOf('}');
+
+    if (start >= 0 && end >= 0) {
+      json = json.substring(start, end + 1);
+    }
+
+    String id = extractField(json, "id");
+    String name = extractField(json, "name");
+    String expiry = extractField(json, "expiry_date");
+    String owner = extractField(json, "owner");
+
+    debugMessage = json;
+
+    return true;
   }
 
-  splitClaudeLines(rawText, line1, line2);
-  debugMessage = rawText;
-  return true;
-}
+  // ---------- JSON extractor (UNCHANGED) ----------
+  static String extractFirstAssistantText(const String& responseBody) {
+    int contentPos = responseBody.indexOf("\"content\"");
+    if (contentPos < 0) return "";
+
+    int textKeyPos = responseBody.indexOf("\"text\"", contentPos);
+    if (textKeyPos < 0) return "";
+
+    int colonPos = responseBody.indexOf(':', textKeyPos);
+    if (colonPos < 0) return "";
+
+    int firstQuotePos = responseBody.indexOf('"', colonPos + 1);
+    if (firstQuotePos < 0) return "";
+
+    String out;
+    bool escape = false;
+
+    for (int i = firstQuotePos + 1; i < (int)responseBody.length(); i++) {
+      char c = responseBody[i];
+
+      if (escape) {
+        out += c;
+        escape = false;
+        continue;
+      }
+
+      if (c == '\\') {
+        escape = true;
+        continue;
+      }
+
+      if (c == '"') break;
+
+      out += c;
+    }
+
+    return out;
+  }
+
+
 
 
 static bool initOV5640Autofocus() {

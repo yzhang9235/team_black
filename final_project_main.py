@@ -58,17 +58,35 @@ def parse_response(text):
         print("JSON parse error, fallback")
         return "Unknown", "2026-01-01"
 
-# ========== 5. run C++ program ==========
-def save_to_cpp(name, expiry, owner="Elaine"):
-    food_id = str(int(time.time()))
+# ========== 5. connect to database ==========
+# def save_to_cpp(name, expiry, owner="Elaine"):
+#     food_id = str(int(time.time()))
 
-    subprocess.run([
-        "./addFood",
-        food_id,
-        name,
-        expiry,
-        owner
-    ])
+#     subprocess.run([
+#         "./addFood",
+#         food_id,
+#         name,
+#         expiry,
+#         owner
+#     ])
+
+# import requests
+
+def save_to_db(name, expiry, owner="Elaine"):
+    # food_id = get_next_food_id()
+    
+    if not food_id:
+        print("all qrcode has been used")
+        return
+    
+    data = {
+        "id": food_id,
+        "name": name,
+        "expiry": expiry,
+        "owner": owner
+    }
+    requests.post("https://team-black-1.onrender.com/add", json=data)
+    print(f"✅{food_id}, please attach qrcode on your food")
 
 # ========== main ==========
 def main():
@@ -79,7 +97,8 @@ def main():
 
     print("Parsed:", name, expiry)
 
-    save_to_cpp(name, expiry)
+    # save_to_cpp(name, expiry)
+    save_to_db(name, expiry)
 
     print("Saved to database!")
 

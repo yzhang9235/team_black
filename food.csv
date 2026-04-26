@@ -1,4 +1,4 @@
-FOOD001,apple,2026-04-20,Elaine
+id,name,expiry_date,owner
 FOOD002,banana,2026-04-20,Hohn
 FOOD003,orange,2026-04-25,Faith
 FOOD004,grape,2026-04-22,Elaine
@@ -18,3 +18,6 @@ FOOD017,banana ripe,2026-04-21,Faith
 FOOD018,orange sweet,2026-04-25,Hohn
 FOOD019,grapefruit,2026-04-26,Elaine
 FOOD020,dragonfruit,2026-05-02,Faith
+FOOD003,orange,2026-04-25,Faith
+FOOD003,orange,2026-04-25,Faith
+FOOD003,orange,2026-04-25,Faith
