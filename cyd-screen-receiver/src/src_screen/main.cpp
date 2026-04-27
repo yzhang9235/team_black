@@ -37,11 +37,15 @@ static uint8_t  pktBuf[MAX_UDP_PAYLOAD];
 IPAddress camIP;
 bool camKnown = false;
 
-bool tftOutput(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap) {
+ bool tftOutput(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap) {
   if (x >= tft.width() || y >= tft.height()) return false;
   if (x + w > tft.width())  w = tft.width() - x;
   if (y + h > tft.height()) h = tft.height() - y;
+
+  tft.startWrite();             
   tft.pushImage(x, y, w, h, bitmap);
+  tft.endWrite();     
+
   return true;
 }
 
@@ -172,6 +176,7 @@ void processPacket(uint8_t* data, int len) {
 }
 
 void setup() {
+  
   Serial.begin(115200);
   delay(500);
 
@@ -179,11 +184,18 @@ void setup() {
   digitalWrite(TFT_BL_PIN, HIGH);
 
   tft.init();
-  tft.setRotation(1);
+  tft.fillScreen(TFT_RED);
+  delay(2000);
+  tft.fillScreen(TFT_GREEN);
+  delay(2000);
+  tft.fillScreen(TFT_BLUE);
+  delay(2000);
+  tft.setRotation(0);
   tft.fillScreen(TFT_BLACK);
 
-  TJpgDec.setJpgScale(1);
-  TJpgDec.setSwapBytes(true);
+  // 🔥 JPEG decoder safe settings
+  TJpgDec.setJpgScale(2);          // 降低压力（关键）
+  TJpgDec.setSwapBytes(false);     // ❗ 关掉（避免彩屏）
   TJpgDec.setCallback(tftOutput);
 
   connectWiFi();
@@ -195,6 +207,38 @@ void setup() {
 
   Serial.println("Streaming...");
 }
+
+// void setup() {
+//   tft.fillScreen(TFT_RED);
+//   delay(1000);
+//   tft.fillScreen(TFT_GREEN);
+//   delay(1000);
+
+// tft.fillScreen(TFT_BLUE);
+//   Serial.begin(115200);
+//   delay(500);
+
+//   pinMode(TFT_BL_PIN, OUTPUT);
+//   digitalWrite(TFT_BL_PIN, HIGH);
+
+//   tft.init();
+//   // tft.setRotation(1);
+//   tft.setRotation(1);
+//   tft.fillScreen(TFT_BLACK);
+
+//   TJpgDec.setJpgScale(1);
+//   TJpgDec.setSwapBytes(true);
+//   TJpgDec.setCallback(tftOutput);
+
+//   connectWiFi();
+
+//   udp.begin(UDP_PORT);
+//   discUdp.begin(DISC_PORT);
+
+//   discoveryLoop();
+
+//   Serial.println("Streaming...");
+// }
 
 void loop() {
   if (!camKnown) {

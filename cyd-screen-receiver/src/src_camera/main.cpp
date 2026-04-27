@@ -165,7 +165,7 @@ void sendPhotoToServer(const String& foodId) {
   client.printf("Host: %s\r\n", SERVER_HOST);
   client.printf("Content-Type: multipart/form-data; boundary=%s\r\n", boundary.c_str());
   client.printf("Content-Length: %d\r\n", contentLength);
-  client.println("Connection: close\r\n");
+  client.println("Connection: close");
 
   client.print(bodyStart);
   client.write(fb->buf, fb->len);
@@ -188,9 +188,6 @@ void sendPhotoToServer(const String& foodId) {
 }
 
 void setup() {
-  Serial.begin(115200);
-  delay(500);
-
   pinMode(JOY_SW_PIN, INPUT_PULLUP);
 
   connectWiFi();
@@ -204,15 +201,13 @@ void setup() {
 }
 
 void loop() {
-  // Check joystick button press
   if (digitalRead(JOY_SW_PIN) == LOW) {
     Serial.println("Joystick pressed!");
 
-    // Get next available food ID from server
+    String foodId = ""; 
+
     WiFiClientSecure client;
     client.setInsecure();
-
-    String foodId = "FOOD001"; // fallback
 
     if (client.connect(SERVER_HOST, SERVER_PORT)) {
       client.println("GET /next_id HTTP/1.1");
@@ -229,17 +224,22 @@ void loop() {
       }
       client.stop();
 
-      // Parse food_id from response body
       int idx = response.indexOf("FOOD");
       if (idx >= 0) {
         foodId = response.substring(idx, idx + 7);
       }
     }
 
+    // if cannot get an id skip
+    if (foodId.isEmpty()) {
+      Serial.println("Failed to get food ID, skipping.");
+      delay(2000);
+      return;
+    }
+
     Serial.printf("Using food ID: %s\n", foodId.c_str());
     sendPhotoToServer(foodId);
 
-    // Debounce
     delay(2000);
   }
 

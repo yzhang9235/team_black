@@ -10,11 +10,16 @@ CLAUDE_URL = "https://api.anthropic.com/v1/messages"
 # can be changed to ESP taking photoes
 def capture_image():
     print("Capturing image...")
-    #for testing
-    return "A carton of milk"
+    # #for testing
+    # return "A carton of milk"
+    ESP32_IP = "10.243.118.208"  
+    response = requests.get(f"http://{ESP32_IP}/jpg", timeout=5)
+    return response.content
 
 # ========== call Claude API ==========
 def call_claude(description):
+    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+    
     headers = {
         "x-api-key": CLAUDE_API_KEY,
         "anthropic-version": "2023-06-01",
